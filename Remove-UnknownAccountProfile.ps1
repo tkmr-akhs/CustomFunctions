@@ -69,6 +69,7 @@ function Remove-UnknownAccountProfile {
             if ($userProfile.LastUseTime -lt $cutoffDate) {
                 $path = $userProfile.LocalPath
                 $userProfile | Remove-CimInstance -WhatIf:$WhatIfPreference
+                $message = "Remove '$($path)'."
                 Write-InformationToHostAndLog $message $MyInvocation.MyCommand.Name $Logging
             }
             else {
