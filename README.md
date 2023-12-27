@@ -8,7 +8,7 @@
 New-ModuleManifest -Path .\CustomFunctions.psd1 -RootModule .\CustomFunctions.psm1
 ```
 ### InternalUtils.psm1
-内部のみで使用されるユーティリティ関数。function を定義する他ファイルで以下のようにインポートされ使用される。
+内部のみで使用されるユーティリティ関数群。function を定義する他ファイルで以下のようにインポートされ使用される。
 ```powershell
 Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local 
 ```
@@ -17,7 +17,11 @@ Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local
 ```powershell
 Import-Module C:\Path\To\Folder\CustomFunctions
 ```
-環境によっては、以下のようにする必要がある。
+環境によっては、以下のように .psd1 ファイルを指定する必要がある。
 ```powershell
 Import-Module C:\Path\To\Folder\CustomFunctions\CustomFunctions.psd1
+```
+-Verbose オプションをつけると、インポート処理の詳細が表示される。
+```powershell
+Import-Module C:\Path\To\Folder\CustomFunctions -Verbose
 ```
