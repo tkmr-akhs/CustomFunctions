@@ -25,7 +25,7 @@ https://docs.microsoft.com/powershell/
 function New-OldFile {
     [CmdletBinding(SupportsShouldProcess)]
     Param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [string]$Directory,
 
         [Parameter()]
@@ -93,11 +93,10 @@ function New-OldFile {
         return
     }
 
-    $Directory = (Resolve-Path $Directory)
-
     if (-not (Test-Path $Directory)) {
-        New-Item -ItemType Directory -Path $Directory -Force -WhatIf:$WhatIfPreference
+        New-Item -ItemType Directory -Path $Directory -Force -WhatIf:$WhatIfPreference | Out-Null
     }
+    $Directory = (Resolve-Path $Directory)
 
     $mtime = $startObj
     $ctime = $mtime.AddHours(-$IntervalHours)
