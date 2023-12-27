@@ -2,17 +2,17 @@
 
 <#
 .SYNOPSIS
-システムのイベントログにイベントを作成します。
+システムのイベントログにイベントを記録します。
 .DESCRIPTION
-Windows システムのイベントログにイベントを作成します。
+Windows システムのイベントログにイベントを作成します。新しい PowerShell では Write-EventLog がなくなったため、EVENTCRATE に基づいた代替手段です。
 .PARAMETER LogName
-イベントが作成されるログの名前。
+イベントが記録されるログの名前。デフォルト値は Application です。
 .PARAMETER Source
 イベントのソース名。
 .PARAMETER EntryType
-イベントのタイプ（"Success", "Error", "Warning", "Information"）。
+イベントのタイプ（"Success", "Error", "Warning", "Information"）。デフォルト値は Information です。
 .PARAMETER EventId
-イベントID（1 から 1000 の範囲）。
+イベントID（1 から 1000 の範囲）。デフォルト値は 1 です。
 .PARAMETER Message
 イベントの説明メッセージ。
 .PARAMETER ComputerName
@@ -74,10 +74,11 @@ function Write-Log {
         $ComputerName = $env:COMPUTERNAME
     }
 
-    $output = (EVENTCREATE "/S" "$ComputerName" "/ID" "$EventId" "/L" "$LogName" "/SO" "$Source" "/T" "$EntryType" "/D" "$Message" 2>&1)
+    if ($PSCmdlet.ShouldProcess("EventLog: $($LogName)", "Write Event. Message: '$($Message)', ComputerName: $($ComputerName), Source: $($Source), EventId: $($EventId), EntryType: $($EntryType)")) {
+        $output = (EVENTCREATE "/S" "$ComputerName" "/ID" "$EventId" "/L" "$LogName" "/SO" "$Source" "/T" "$EntryType" "/D" "$Message" 2>&1)
 
-    if (-not $?) {
-        Write-Error "$output"
+        if (-not $?) {
+            Write-Error "$output"
+        }
     }
-    Write-Debug "EVENTCREATE `"/S`" `"$($ComputerName)`" `"/ID`" `"$($EventId)`" `"/L`" `"$($LogName)`" `"/SO`" `"$($Source)`" `"/T`" `"$($EntryType)`" `"/D`" `"$($Message)`" 2>&1 1> `$null"
 }
