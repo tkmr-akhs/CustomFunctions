@@ -1,4 +1,6 @@
-﻿<#
+﻿Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local
+
+<#
 .SYNOPSIS
 ユーザー プロファイルが生成される既定のディレクトリを変更します。
 .DESCRIPTION

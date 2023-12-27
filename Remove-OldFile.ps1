@@ -1,4 +1,6 @@
-﻿<#
+﻿Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local
+
+<#
 .SYNOPSIS
 指定されたディレクトリ内の古いファイルを削除または圧縮します。
 .DESCRIPTION

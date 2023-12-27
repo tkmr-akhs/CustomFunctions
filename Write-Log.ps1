@@ -1,4 +1,6 @@
-﻿<#
+﻿Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local
+
+<#
 .SYNOPSIS
 システムのイベントログにイベントを作成します。
 .DESCRIPTION

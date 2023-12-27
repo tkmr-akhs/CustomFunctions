@@ -1,4 +1,6 @@
-﻿<#
+﻿Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local
+
+<#
 .SYNOPSIS
 不明なアカウントのユーザー プロファイルを削除します。
 .DESCRIPTION
