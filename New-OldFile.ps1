@@ -50,7 +50,7 @@ function New-OldFile {
         $r = [System.Random]::new();
         [long]$progress = 0;
         [int]$nextLen = 0;
-        $fs = [System.IO.File]::Create([System.IO.Path]::Combine($PWD, $OutPath));
+        $fs = [System.IO.File]::Create($OutPath);
         try {
             do {
                 $task = $fs.WriteAsync($bin1, 0, $nextLen);
@@ -92,6 +92,8 @@ function New-OldFile {
         Write-Error "'IntervalHours' must be greater than 1."
         return
     }
+
+    $Directory = (Resolve-Path $Directory)
 
     if (-not (Test-Path $Directory)) {
         New-Item -ItemType Directory -Path $Directory -Force -WhatIf:$WhatIfPreference
