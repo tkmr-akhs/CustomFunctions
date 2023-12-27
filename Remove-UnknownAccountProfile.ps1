@@ -16,7 +16,7 @@ Remove-UnknownAccountProfile
 Remove-UnknownAccountProfile -CutoffDays 5
 このコマンドは、5 日のカットオフ期間を使用して、未知のアカウントプロファイルを削除します。
 .NOTES
-このスクリプトは、管理者権限で実行する必要があります。また、実行する前に影響を受ける可能性のあるプロファイルを確認してください。
+このスクリプトは、管理者権限で実行する必要があります。
 .LINK
 https://docs.microsoft.com/powershell/
 #>

@@ -22,7 +22,7 @@ Write-Log -LogName "Application" -Source "MyApp" -EntryType "Error" -EventId 100
 
 この例では、アプリケーションログに "MyApp" ソースのエラーイベントを作成します。
 .NOTES
-この関数の実行には管理者権限が必要です。
+このスクリプトは、管理者権限で実行する必要があります。
 .LINK
 https://docs.microsoft.com/powershell/
 #>
