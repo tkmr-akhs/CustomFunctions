@@ -7,6 +7,7 @@
 . $PSScriptRoot\New-OldFile.ps1
 . $PSScriptRoot\Remove-OldFile.ps1
 . $PSScriptRoot\Remove-UnknownAccountProfile.ps1
+. $PSScriptRoot\Set-EventLogArchive.ps1
 . $PSScriptRoot\Set-ProfilesDirectory.ps1
 
 # 必要な関数や変数をエクスポート
@@ -16,4 +17,5 @@ Export-ModuleMember -Function `
     'New-OldFile', `
     'Remove-OldFile', `
     'Remove-UnknownAccountProfile', `
+    'Set-EventLogArchive', `
     'Set-ProfilesDirectory'
