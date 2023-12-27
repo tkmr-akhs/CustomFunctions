@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-システムのイベントログにイベントを記録します。
+システムのイベント ログにイベントを記録します。
 .DESCRIPTION
-Windows システムのイベントログにイベントを作成します。新しい PowerShell では Write-EventLog がなくなったため、EVENTCRATE に基づいた代替手段です。
+Windows システムのイベント ログにイベントを記録します。新しい PowerShell では Write-EventLog がなくなったため、EVENTCRATE に基づいた代替手段です。
 .PARAMETER LogName
 イベントが記録されるログの名前。デフォルト値は Application です。
 .PARAMETER Source
@@ -16,11 +16,11 @@ Windows システムのイベントログにイベントを作成します。新
 .PARAMETER Message
 イベントの説明メッセージ。
 .PARAMETER ComputerName
-イベントが作成されるコンピュータの名前。指定されていない場合は現在のコンピュータ名が使用されます。
+イベントが作成されるコンピューターの名前。指定されていない場合は現在のコンピューター名が使用されます。
 .EXAMPLE
 Write-Log -LogName "Application" -Source "MyApp" -EntryType "Error" -EventId 100 -Message "エラーが発生しました"
 
-この例では、アプリケーションログに "MyApp" ソースのエラーイベントを作成します。
+この例では、アプリケーション ログに "MyApp" ソースのエラーイベントを作成します。
 .LINK
 https://docs.microsoft.com/powershell/
 #>
