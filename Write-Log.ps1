@@ -21,8 +21,6 @@ Windows システムのイベントログにイベントを作成します。新
 Write-Log -LogName "Application" -Source "MyApp" -EntryType "Error" -EventId 100 -Message "エラーが発生しました"
 
 この例では、アプリケーションログに "MyApp" ソースのエラーイベントを作成します。
-.NOTES
-このスクリプトは、管理者権限で実行する必要があります。
 .LINK
 https://docs.microsoft.com/powershell/
 #>
