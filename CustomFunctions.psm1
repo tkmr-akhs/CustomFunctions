@@ -1,5 +1,5 @@
 ﻿# この行をコメントアウト解除すると、デバッグ出力が表示される。(規定値は "SilentContinue")
-#$DebugPreference = "Continue"
+$DebugPreference = "Continue"
 
 # 他の .psm1 ファイルをドットソーシング
 . $PSScriptRoot\Write-Log.ps1

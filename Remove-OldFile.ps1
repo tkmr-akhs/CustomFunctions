@@ -71,13 +71,13 @@ function Remove-OldFile {
         return
     }
 
-    if ($CutoffPercent -lt 1 -or 100 -lt $CutoffPercent) {
+    $DateBased = ($CutoffDays -ne 0)
+    $FreeSpaceBased = ($CutoffPercent -ne 0)
+
+    if ($FreeSpaceBased -and ($CutoffPercent -lt 1 -or 100 -lt $CutoffPercent)) {
         Write-Error "'CutoffPercent' must be between 1 and 100."
         return
     }
-
-    $DateBased = ($null -eq $CutoffDays)
-    $FreeSpaceBased = ($null -eq $CutoffPercent)
 
     if (-not $DateBased -and -not $FreeSpaceBased) {
         $CutoffDays = 366
@@ -89,30 +89,47 @@ function Remove-OldFile {
         return
     }
 
-    Write-InformationToHostAndLog "フォルダー '$($Directory)' の処理を開始します。" $MyInvocation.MyCommand.Name $Logging
+    Write-Debug "DateBased: $($DateBased), CutoffDays: $($CutoffDays)"
+    Write-Debug "FreeSpaceBased: $($FreeSpaceBased),  CutoffPercent: $($CutoffPercent)"
+
+    Write-InformationToHostAndLog "フォルダー '$($Directory)' の処理を開始します。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
 
     # 圧縮処理
     if ($Compress) {
+        Write-Debug "Compress old files based on free space."
         $target_files = (Get-ChildItem $Directory | where { $_.Name -like $FilePattern -and $_ -is [System.IO.FileInfo] })
  
+        Write-Debug "target_files: $($target_files.Length)"
         if ($target_files.Length -gt 0) {
             foreach ($target_file in $target_files) {
                 try {
-                    Compress-Archive -Path $target_file.FullName -DestinationPath $target_file.FullName -WhatIf:$WhatIfPreference
+                    $mtime = $target_file.LastWriteTime
+                    $ctime = $target_file.CreationTime
+                    $dstPath = "$($target_file.FullName).zip"
+                    Compress-Archive -Path $target_file.FullName -DestinationPath $dstPath -WhatIf:$WhatIfPreference
+                    if (-not $WhatIfPreference) {
+                        [System.IO.File]::SetLastWriteTime($dstPath, $mtime)
+                        [System.IO.File]::SetCreationTime($dstPath, $ctime)
+                    }
                     Remove-Item $target_file.FullName -WhatIf:$WhatIfPreference
-                    Write-InformationToHostAndLog "ファイル '$($target_file)' を圧縮しました。" $MyInvocation.MyCommand.Name $Logging
+                    
+                    Write-InformationToHostAndLog "ファイル '$($target_file)' を圧縮しました。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
+                    
                 }
                 catch {
-                    Write-WarningToHostAndLog "ファイル '$($target_file)' の圧縮処理ができませんでした。" $MyInvocation.MyCommand.Name $Logging
+                    Write-WarningToHostAndLog "ファイル '$($target_file)' の圧縮処理ができませんでした。`r`n$($_)" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
                 }
             }
         }
     }
+
     # 空き容量に基づく削除処理
     if ($FreeSpaceBased) {
+        Write-Debug "Remove old files based on free space."
         # 対象ファイルの取得
         $target_files = (Get-ChildItem $Directory | where { _checkFileNameForRemove($_.Name, $FilePattern, $Compress) -and $_ -is [System.IO.FileInfo] } | sort LastWriteTime)
  
+        Write-Debug "target_files: $($target_files.Length)"
         if ($target_files.Length -gt 0) {
             # PSDrive オブジェクトを取得
             $target_drive = $target_files[0].PSDrive
@@ -133,8 +150,8 @@ function Remove-OldFile {
                     try {
                         Remove-Item $target_file.FullName -WhatIf:$WhatIfPreference
 
-                        Write-InformationToHostAndLog "ファイル '$($target_file)' を削除しました。" $MyInvocation.MyCommand.Name $Logging
- 
+                        Write-InformationToHostAndLog "ファイル '$($target_file)' を削除しました。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
+
                         # 空き容量の更新
                         $drive_free = $target_drive.Free
  
@@ -143,7 +160,7 @@ function Remove-OldFile {
                     }
                     catch {
                         if ($null -ne $target_file -and $target_file -ne "") {
-                            Write-WarningToHostAndLog "ファイル '$($target_file)' の削除処理ができませんでした。" $MyInvocation.MyCommand.Name $Logging
+                            Write-WarningToHostAndLog "ファイル '$($target_file)' の削除処理ができませんでした。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
                         }
                         $idx ++
                     }
@@ -155,9 +172,11 @@ function Remove-OldFile {
 
     # 日付に基づく削除処理
     if ($DateBased) {
+        Write-Debug "Remove old files based on date."
         # 対象ファイルの取得
         $target_files = (Get-ChildItem $Directory | where { _checkFileNameForRemove($_.Name, $FilePattern, $Compress) -and $_ -is [System.IO.FileInfo] } | sort LastWriteTime)
  
+        Write-Debug "target_files: $($target_files.Length)"
         if ($target_files.Length -gt 0) {
             $idx = 0
             while ($idx -lt $target_files.Length -and $idx -lt $maxidx) {
@@ -171,12 +190,13 @@ function Remove-OldFile {
                 else {
                     try {
                         Remove-Item $target_file.FullName -WhatIf:$WhatIfPreference
-                        Write-InformationToHostAndLog "ファイル '$($target_file)' を削除しました。" $MyInvocation.MyCommand.Name $Logging
+                        
+                        Write-InformationToHostAndLog "ファイル '$($target_file)' を削除しました。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
                         $idx ++
                     }
                     catch {
                         if ($null -ne $target_file -and $target_file -ne "") {
-                            Write-WarningToHostAndLog "ファイル '$($target_file)' の削除処理ができませんでした。" $MyInvocation.MyCommand.Name $Logging
+                            Write-WarningToHostAndLog "ファイル '$($target_file)' の削除処理ができませんでした。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
                         }
                         $idx ++
                     }
@@ -185,5 +205,5 @@ function Remove-OldFile {
         }
     }
 
-    Write-InformationToHostAndLog "フォルダー '$($Directory)' の処理が完了しました。" $MyInvocation.MyCommand.Name $Logging
+    Write-InformationToHostAndLog "フォルダー '$($Directory)' の処理が完了しました。" $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
 }

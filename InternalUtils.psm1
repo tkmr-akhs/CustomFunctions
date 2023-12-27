@@ -4,16 +4,18 @@
     }
 }
 
-function Write-WarningToHostAndLog([string]$message, [string]$source, [bool]$logging) {
+function Write-WarningToHostAndLog([string]$message, [string]$source, [bool]$logging, [bool]$whatIfPref) {
     Write-Warning $message
+    
     if ($logging) {
-        Write-Log $message -Source $source -EntryType Warning
+        Write-Log $message -Source $source -EntryType Warning -WhatIf:$whatIfPref
     }
 }
 
-function Write-InformationToHostAndLog([string]$message, [string]$source, [bool]$logging) {
+function Write-InformationToHostAndLog([string]$message, [string]$source, [bool]$logging, [bool]$whatIfPref) {
     Write-Information "INFO: $($message)" -InformationAction Continue
+    
     if ($logging) {
-        Write-Log $message -Source $source
+        Write-Log $message -Source $source -WhatIf:$whatIfPref
     }
 }

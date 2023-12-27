@@ -57,7 +57,7 @@ function Remove-UnknownAccountProfile {
             $message += "`r`nLastUseTime: $($userProfile.LastUseTime)"
             $message += "`r`ncutoffDate: $($cutoffDate)"
 
-            Write-WarningToHostAndLog $message $MyInvocation.MyCommand.Name $Logging
+            Write-WarningToHostAndLog $message $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
         }
     }
 
@@ -70,7 +70,7 @@ function Remove-UnknownAccountProfile {
                 $path = $userProfile.LocalPath
                 $userProfile | Remove-CimInstance -WhatIf:$WhatIfPreference
                 $message = "Remove '$($path)'."
-                Write-InformationToHostAndLog $message $MyInvocation.MyCommand.Name $Logging
+                Write-InformationToHostAndLog $message $MyInvocation.MyCommand.Name $Logging $WhatIfPreference
             }
             else {
                 Write-Debug "$($userProfile.SID) is not expired. $($userProfile.LastUseTime)"
