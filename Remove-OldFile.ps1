@@ -36,7 +36,6 @@ function Remove-OldFile {
 
         [Parameter(Position = 1)]
         [string]$FilePattern = "*",
-        #[string]$FilePattern = "Archive-*-*-*-*-*-*-*-*.evtx"
 
         [Parameter()]
         [Int]$CutoffDays,

@@ -61,7 +61,7 @@ function Example-Function {
         [string]$Param1,
 
         [Parameter(Position = 1)]
-        [string]$Param2 = "DefaultValue",
+        [string]$Param2 = "DefaultValue"
     )
 
     # 処理
