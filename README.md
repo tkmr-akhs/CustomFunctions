@@ -12,6 +12,7 @@ New-ModuleManifest -Path .\CustomFunctions.psd1 -RootModule .\CustomFunctions.ps
 ```powershell
 Import-Module $PSScriptRoot\InternalUtils.psm1 -Scope Local 
 ```
+
 ## 操作方法
 以下のようにインポートする。
 ```powershell
@@ -25,6 +26,15 @@ Import-Module C:\Path\To\Folder\CustomFunctions\CustomFunctions.psd1
 ```powershell
 Import-Module C:\Path\To\Folder\CustomFunctions -Verbose
 ```
+以下のようにすることで、コマンド一覧が表示される。
+```powershell
+Get-Command -Module C:\Path\To\Folder\CustomFunctions
+```
+以下のようにすることで、インポート済みのモジュールを解除できる。
+```powershell
+Remove-Module CustomFunctions
+```
+
 ## function を追加するには
 1. function を定義する .ps1 ファイルを UTF-8 with BOM で作成する。
 ```powershell
