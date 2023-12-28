@@ -14,7 +14,7 @@
 .LINK
 参考 URL。
 #>
-function Set-EventLogArchive {
+function Set-EventLogConfiguration {
     [CmdletBinding(SupportsShouldProcess)]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]
