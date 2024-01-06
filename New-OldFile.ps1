@@ -6,7 +6,7 @@
 .PARAMETER Directory
 ランダムファイルを生成するディレクトリのパス。
 .PARAMETER Start
-ファイルの作成時刻と最終変更時刻の開始点となる日時。ISO 8601 形式で指定します。
+ファイルの作成時刻と最終変更時刻の開始点となる日時。
 .PARAMETER FormatString
 生成するファイルの名前フォーマット。DateTime.ToString(string) の引数となる文字列。デフォルトは 'Arc\hive-Applica\tion-yyyy-MM-dd-HH-mm-ss-fff.ev\tx'。
 .PARAMETER IntervalHours
@@ -29,7 +29,7 @@ function New-OldFile {
         [string]$Directory,
 
         [Parameter()]
-        [string]$Start = [System.DateTime]::Now.ToString("yyyy-MM-ddTHH:mm:ssK"),
+        [datetime]$Start = [System.DateTime]::Now,
 
         [Parameter()]
         [string]$FormatString = "Arc\hive-Applica\tion-yyyy-MM-dd-HH-mm-ss-fff.ev\tx",
@@ -66,14 +66,6 @@ function New-OldFile {
         }
     }
 
-    try {
-        $startObj = [System.DateTime]::Parse($Start)
-    }
-    catch {
-        Write-Error $_
-        return
-    }
-
     if ($null -eq $FormatString -or $FormatString -eq "") {
         $FormatString = "Arc\hive-Applica\tion-yyyy-MM-dd-HH-mm-ss-fff.ev\tx"
     }
@@ -98,7 +90,7 @@ function New-OldFile {
     }
     $Directory = (Resolve-Path $Directory)
 
-    $mtime = $startObj
+    $mtime = $Start
     $ctime = $mtime.AddHours(-$IntervalHours)
     $i = 0
     $threashold = $Count % 8 -eq 0 ? $Count - 8 : $Count - $Count % 8 
