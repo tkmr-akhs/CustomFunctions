@@ -16,12 +16,9 @@ Set-EventLogConfiguration は、指定されたイベントログの設定を変
 イベント ログの保持設定 (true または false)。指定しない場合、この設定は変更されません。
 .PARAMETER AutoBackup
 イベント ログがいっぱいになった時の自動バックアップ設定 (true または false)。指定しない場合、この設定は変更されません。
-.PARAMETER Changed
-この出力パラメータは、イベント ログの設定が変更されたかどうかを示します。設定が変更された場合、このパラメータは true に設定され、変更がない場合は false に設定されます。このパラメータは参照渡しであるため、関数の呼び出し時に [ref] 修飾子を使用して渡す必要があります。
 .EXAMPLE
-$changed = $false
-Set-EventLogConfiguration -LogName "Application" -Size 20MB -Retention $true -AutoBackup $false -Changed ([ref]$changed)
-アプリケーション ログの最大サイズを20MBに設定し、ログの保持と自動バックアップを無効にします。設定が変更されると、$changed は true に設定されます。
+Set-EventLogConfiguration -LogName "Application" -Size 20MB -Retention $true -AutoBackup $false
+アプリケーション ログの最大サイズを20MBに設定し、ログの保持と自動バックアップを無効にします。
 .NOTES
 このスクリプトは、管理者権限で実行する必要があります。
 .LINK
@@ -45,10 +42,7 @@ function Set-EventLogConfiguration {
         [Nullable[bool]]$Retention,
 
         [Parameter()]
-        [Nullable[bool]]$AutoBackup,
-
-        [Parameter()]
-        [ref]$Changed
+        [Nullable[bool]]$AutoBackup
     )
 
     #### Local Functions ################
@@ -71,8 +65,14 @@ function Set-EventLogConfiguration {
     }
 
     #### Main ################
-    if ($null -ne $Changed) {
-        $Changed.Value = $false
+    [EventLogConfiguration]$currentLogConfig
+    try {
+        $currentLogConfig = Get-EventLogConfiguration $LogName -ErrorAction Stop
+    }
+    catch {
+        New-ResultJson $_ -Changed $false -Success $false
+        Write-Error $_
+        return
     }
 
     if (-not [System.String]::IsNullOrEmpty($Path)) {
@@ -81,6 +81,7 @@ function Set-EventLogConfiguration {
             $pathOption = "/logfilename:$($Path)"
         }
         else {
+            New-ResultJson "'Path' is invalid." -Changed $false -Success $false
             Write-Error "'Path' is invalid."
             return
         }
@@ -104,26 +105,28 @@ function Set-EventLogConfiguration {
         $maxSizeOption = "/maxsize:$($Size)"
     }
 
-    [EventLogConfiguration]$currentLogConfig = Get-EventLogConfiguration $LogName
-
     if (Test-EventLogConfigurationChange $currentLogConfig $Path $Size $Retention $AutoBackup) {
-        Write-Warning "No change."
+        New-ResultJson "No change." -Changed $false -Success $true
         return
     }
 
+    Write-Debug "WEVTUTIL set-log $LogName /quiet:true $pathOption $retentionOption $autoBackupOption $maxSizeOption 2>&1"
     if ($PSCmdlet.ShouldProcess("EventLog: $($LogName)", "Change setting of event log.")) {
-        Write-Debug "WEVTUTIL set-log $LogName /quiet:true $pathOption $retentionOption $autoBackupOption $maxSizeOption 2>&1"
         $output = (WEVTUTIL "set-log" $LogName "/quiet:true" $pathOption $retentionOption $autoBackupOption $maxSizeOption 2>&1)
         
         if (-not $?) {
+            New-ResultJson "$($output)" -Changed $false -Success $false
             Write-Error "$($output)"
+            return
         }
         else {
-            if ($null -ne $Changed) {
-                $Changed.Value = $true
-            }
-            Write-Debug "$($output)"
+            New-ResultJson "Event log configuration updated successfully." -Changed $true -Success $true
+            return
         }
+    }
+    else {
+        New-ResultJson "(dry-run) Event log configuration updated successfully." -Changed $true -Success $true
+        return
     }
 }
 

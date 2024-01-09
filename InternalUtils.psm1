@@ -40,3 +40,22 @@ function Test-FullyQualifiedAbsolutePath([Parameter(Mandatory = $true)][string]$
         return $false
     }
 }
+
+function New-ResultJson {
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [String]$Message,
+
+        [Parameter()]
+        [bool]$Changed = $false,
+
+        [Parameter()]
+        [bool]$Success = $true
+    )
+
+    return (@{
+            Changed = $Changed
+            Success = $Success
+            Message = $Message
+        } | ConvertTo-Json)
+}
