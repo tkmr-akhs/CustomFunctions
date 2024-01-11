@@ -32,43 +32,24 @@ function Write-Log {
         [Parameter(Mandatory = $true, Position = 0)]
         [String]$Message,
 
+        [ValidateLength(1, 2147483647)]
         [Parameter()]
         [String]$LogName = "Application",
 
         [Parameter(Mandatory = $true)]
         [String]$Source,
 
-        [Parameter()]
+        [ValidateSet(1, 2147483647)]
+        [Parameter("Success", "Error", "Warning", "Information")]
         [String]$EntryType = "Information",
 
+        [ValidateRange(1, 1000)]
         [Parameter()]
         [Int32]$EventId = 1,
 
         [Parameter()]
         [String]$ComputerName
     )
-
-    if ($LogName -eq "") {
-        Write-Error "'LogName' must not be empty."
-    }
-
-    if ($Source -eq "") {
-        Write-Error "'Source' must not be empty."
-    }
-
-    if ($Message -eq "") {
-        Write-Error "'Message' must not be empty."
-    }
-
-    if ($EventId -lt 1 -or 1000 -lt $EventId) {
-        Write-Error "'EventId' must be between 1 and 1000."
-        return
-    }
-
-    if ($EntryType -ne "Success" -and $EntryType -ne "Error" -and $EntryType -ne "Warning" -and $EntryType -ne "Information") {
-        Write-Error "'EntryType' must be one of 'Success', 'Error', 'Warning', or 'Information'."
-        return
-    }
 
     if ($null -eq $ComputerName -or $ComputerName -eq "" -or $ComputerName -eq "." -or $ComputerName -eq "localhost") {
         $ComputerName = $env:COMPUTERNAME

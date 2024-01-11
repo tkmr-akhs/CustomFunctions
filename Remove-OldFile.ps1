@@ -34,6 +34,7 @@ function Remove-OldFile {
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$Directory,
 
+        [ValidateLength(1, 2147483647)]
         [Parameter(Position = 1)]
         [string]$FilePattern = "*",
 
@@ -65,11 +66,6 @@ function Remove-OldFile {
     }
 
     #### Main ################
-    if ($null -eq $Directory -or $Directory -eq "") {
-        Write-Error "'Directory' must not be empty."
-        return
-    }
-
     $DateBased = ($CutoffDays -ne 0)
     $FreeSpaceBased = ($CutoffPercent -ne 0)
 

@@ -34,12 +34,15 @@ function New-OldFile {
         [Parameter()]
         [string]$FormatString = "Arc\hive-Applica\tion-yyyy-MM-dd-HH-mm-ss-fff.ev\tx",
 
+        [ValidateRange(1, 2147483647)]
         [Parameter()]
         [int]$IntervalHours = 30,
 
+        [ValidateRange(1, 2147483647)]
         [Parameter()]
         [int]$Count = 32,
 
+        [ValidateRange(1, 2147483647)]
         [Parameter()]
         [string]$FileLength = 64
     )
@@ -70,21 +73,6 @@ function New-OldFile {
         $FormatString = "Arc\hive-Applica\tion-yyyy-MM-dd-HH-mm-ss-fff.ev\tx"
     }
 
-    if ($IntervalHours -lt 1) {
-        Write-Error "'IntervalHours' must be greater than 1."
-        return
-    }
-
-    if ($Count -lt 1) {
-        Write-Error "'Count' must be greater than 1."
-        return
-    }
-
-    if ($FileLength -lt 1) {
-        Write-Error "'IntervalHours' must be greater than 1."
-        return
-    }
-
     if (-not (Test-Path $Directory)) {
         New-Item -ItemType Directory -Path $Directory -Force -WhatIf:$WhatIfPreference | Out-Null
     }
@@ -107,7 +95,7 @@ function New-OldFile {
             New-RandomFile $filePath -FileSize $FileLength
             [System.IO.File]::SetLastWriteTime($filePath, $mtime)
             [System.IO.File]::SetCreationTime($filePath, $ctime)
-            Write-Debug "Create a file '$($filePath)' of size '$($FileLength)'"
+            Write-Debug "Creating a file at '$($filePath)' with a size of '$($FileLength) bytes'"
         }
     }
 

@@ -124,7 +124,7 @@ function Set-EventLogConfiguration {
     }
 
     if (Test-EventLogConfigurationChange $currentLogConfig $Path $Size $Retention $AutoBackup) {
-        New-ResultJson "No change." -Changed $false -Failed $false -Json:$Json
+        New-ResultJson "No changes are made." -Changed $false -Failed $false -Json:$Json
         return
     }
 
