@@ -44,8 +44,19 @@ function Disable-Ipv6 {
     $prefixPolicies = Get-PrefixPolicy
 
     foreach ($netAdapter in Get-NetAdapter) {
-        Disable-NetAdapterBinding $netAdapter.Name -ComponentID ms_tcpip6 -WhatIf:$WhatIfPreference
-        Write-Debug "ms_tcpip6: $((Get-NetAdapterBinding $netAdapter.Name -ComponentID ms_tcpip6).Enabled)"
+        if ((Get-NetAdapterBinding $netAdapter.Name -ComponentID ms_tcpip6).Enabled) {
+            try {
+                Write-Debug "Disable 'ms_tcpip6' component on '$($netAdapter.Name)'."
+                Disable-NetAdapterBinding $netAdapter.Name -ComponentID ms_tcpip6 -WhatIf:$WhatIfPreference -ErrorAction Stop
+                $changed = $true
+            }
+            catch {
+                $failed = $true
+                $failedMessage = "Failed to disable the 'ms_tcpip6' component on '$($netAdapter.Name)'."
+                $message = "$($message)$($failedMessage)`r`n"
+                Write-Error $failedMessage
+            }
+        }
     }
 
     if (IsEnabled (NETSH "interface" "ipv6" "isatap" "show" "state" 2>&1)) {
@@ -58,7 +69,7 @@ function Disable-Ipv6 {
             else {
                 $failed = $true
                 $message = "$($message)$($output.Trim()))`r`n"
-                Write-Error $message
+                Write-Error "$($output)"
             }
         }
     }
@@ -125,13 +136,13 @@ function Disable-Ipv6 {
     }
 
     if (-not $changed -and -not $failed) {
-        return (New-ResultJson "No change." -Changed $false -Failed $false -Json:$Json)
+        return (New-ResultJson "No changes are made." -Changed $false -Failed $false -Json:$Json)
     }
     elseif ($failed) {
         return (New-ResultJson $message -Changed $changed -Failed $true -Json:$Json)
     }
     else {
-        return (New-ResultJson "Disable IPv6 functions successfully." -Changed $changed -Failed $failed -Json:$Json)
+        return (New-ResultJson "IPv6 functions successfully disabled." -Changed $changed -Failed $failed -Json:$Json)
     }
 }
 
