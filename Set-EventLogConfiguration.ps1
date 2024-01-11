@@ -42,7 +42,10 @@ function Set-EventLogConfiguration {
         [Nullable[bool]]$Retention,
 
         [Parameter()]
-        [Nullable[bool]]$AutoBackup
+        [Nullable[bool]]$AutoBackup,
+
+        [Parameter()]
+        [switch]$Json
     )
 
     #### Local Functions ################
@@ -70,25 +73,33 @@ function Set-EventLogConfiguration {
         $currentLogConfig = Get-EventLogConfiguration $LogName -ErrorAction Stop
     }
     catch {
-        New-ResultJson $_ -Changed $false -Success $false
+        New-ResultJson $_ -Changed $false -Failed $true -Json:$Json
         Write-Error $_
         return
     }
 
     if (-not [System.String]::IsNullOrEmpty($Path)) {
         $DirPath = Get-ParentPath $Path
-        if ((Test-FullyQualifiedAbsolutePath $Path) -and (Test-Path $DirPath)) {
+        if (-not $Path.EndsWith("\") -and -not $Path.EndsWith("/") -and (Test-FullyQualifiedAbsolutePath $Path) -and (Test-Path $DirPath)) {
             $pathOption = "/logfilename:$($Path)"
         }
         else {
-            New-ResultJson "'Path' is invalid." -Changed $false -Success $false
-            Write-Error "'Path' is invalid."
+            $msg = "'Path' is invalid."
+            New-ResultJson $msg -Changed $false -Failed $false -Json:$Json
+            Write-Error $msg
             return
         }
     }
 
     if ($null -ne $Retention) {
-        $retentionStr = $Retention ? "true" : "false"
+        #$retentionStr = $Retention ? "true" : "false"
+        if ($Retention) {
+            $retentionStr = "true"
+        }
+        else {
+            $retentionStr = "false"
+        }
+
         $retentionOption = "/retention:$($retentionStr)"
 
         if (-not $Retention -and $null -eq $AutoBackup) {
@@ -97,7 +108,14 @@ function Set-EventLogConfiguration {
     }
 
     if ($null -ne $AutoBackup) {
-        $autoBackupStr = $AutoBackup ? "true" : "false"
+        #$autoBackupStr = $AutoBackup ? "true" : "false"
+        if ($AutoBackup) {
+            $autoBackupStr = "true"
+        }
+        else {
+            $autoBackupStr = "false"
+        }
+
         $autoBackupOption = "/autobackup:$($autoBackupStr)"
     }
 
@@ -106,7 +124,7 @@ function Set-EventLogConfiguration {
     }
 
     if (Test-EventLogConfigurationChange $currentLogConfig $Path $Size $Retention $AutoBackup) {
-        New-ResultJson "No change." -Changed $false -Success $true
+        New-ResultJson "No change." -Changed $false -Failed $false -Json:$Json
         return
     }
 
@@ -115,17 +133,17 @@ function Set-EventLogConfiguration {
         $output = (WEVTUTIL "set-log" $LogName "/quiet:true" $pathOption $retentionOption $autoBackupOption $maxSizeOption 2>&1)
         
         if (-not $?) {
-            New-ResultJson "$($output)" -Changed $false -Success $false
+            New-ResultJson "$($output)" -Changed $false -Failed $true -Json:$Json
             Write-Error "$($output)"
             return
         }
         else {
-            New-ResultJson "Event log configuration updated successfully." -Changed $true -Success $true
+            New-ResultJson "Event log configuration updated successfully." -Changed $true -Failed $false -Json:$Json
             return
         }
     }
     else {
-        New-ResultJson "(dry-run) Event log configuration updated successfully." -Changed $true -Success $true
+        New-ResultJson "(dry-run) Event log configuration updated successfully." -Changed $true -Failed $false -Json:$Json
         return
     }
 }

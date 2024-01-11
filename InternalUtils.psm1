@@ -50,12 +50,24 @@ function New-ResultJson {
         [bool]$Changed = $false,
 
         [Parameter()]
-        [bool]$Success = $true
+        [bool]$Failed = $false,
+
+        [Parameter()]
+        [switch]$Json
     )
 
-    return (@{
-            Changed = $Changed
-            Success = $Success
-            Message = $Message
-        } | ConvertTo-Json)
+    if ($Json) {
+        return (@{
+                changed = $Changed
+                failed  = $Failed
+                msg     = $Message
+            } | ConvertTo-Json)
+    }
+    else {
+        return (@{
+                changed = $Changed
+                failed  = $Failed
+                msg     = $Message
+            })
+    }
 }

@@ -24,8 +24,12 @@ function Set-ProfilesDirectory {
         [String]$Path,
 
         [Parameter()]
-        [Switch]$Force
+        [Switch]$Force,
+
+        [Parameter()]
+        [switch]$Json
     )
+    $Path = $Path.TrimEnd('\', '/')
 
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
     $regName = "ProfilesDirectory"
@@ -33,44 +37,74 @@ function Set-ProfilesDirectory {
     $oldIniFile = "$($oldPath)\desktop.ini"
     $newIniFile = "$($Path)\desktop.ini"
     
+    $changed = $false
+
+    $expandedOldPath = [System.Environment]::ExpandEnvironmentVariables($oldPath)
+    $expandedNewPath = [System.Environment]::ExpandEnvironmentVariables($Path)
+    $fullOldPath = [System.IO.Path]::GetFullPath($expandedOldPath)
+    $fullNewPath = [System.IO.Path]::GetFullPath($expandedNewPath)
+
+    if ($fullOldPath -eq $fullNewPath) {
+        $msg = "設定済みです。"
+        New-ResultJson $msg -Failed $false -Changed $false -Json:$Json
+        return
+    }
+
     if (Test-Path $Path) {
         if (-not $Force) {
-            Write-Error "'$($Path)' は既に存在します。'-Force' オプションを使用して強制的に処理を進めることができます。"
+            $msg = "'$($Path)' は既に存在します。'-Force' オプションを使用して強制的に処理を進めることができます。"
+            New-ResultJson $msg -Failed $true -Changed $false -Json:$Json
+            Write-Error $msg
             return
         }
 
         Write-Warning "'$Path' は既に存在しています。"
         if (-not (Get-Item $Path -Force).PSIsContainer -and $PSCmdlet.ShouldProcess($Path, "Remove item")) {
             Remove-Item $Path -Force
+            $changed = $true
         }
     }
-    
-    if ($PSCmdlet.ShouldProcess($Path, "Create directory")) {
-        New-Item -ItemType Directory $Path -Force | Out-Null
+
+    $errorActionPref = $ErrorActionPreference
+    $ErrorActionPreference = 'Stop'
+
+    try {
+        if ($PSCmdlet.ShouldProcess($Path, "Create directory")) {
+            New-Item -ItemType Directory $Path -Force | Out-Null
+        }
+
+        if ($PSCmdlet.ShouldProcess($newIniFile, "Copy '$($oldIniFile)'")) {
+            Remove-Item $newIniFile -Force -ErrorAction SilentlyContinue
+            Get-Content $oldIniFile | Out-File $newIniFile -Force
+            $changed = $true
+        }
+
+        $oldIniAttr = (Get-Item $oldIniFile -Force).Attributes
+
+        if ($PSCmdlet.ShouldProcess($newIniFile, "Assign the same attributes as '$($oldIniFile)'")) {
+            Set-ItemProperty -Path $newIniFile -Name Attributes -Value $oldIniAttr
+        }
+
+        $oldDirAcl = Get-Acl -Path $oldPath -Audit
+        $oldDirAttr = (Get-Item $oldPath).Attributes -band -bnot [System.IO.FileAttributes]::Directory
+
+        if ($PSCmdlet.ShouldProcess($Path, "Assign the same ACL as '$($oldPath)'")) {
+            Set-Acl -Path $Path -AclObject $oldDirAcl
+        }
+
+        if ($PSCmdlet.ShouldProcess($Path, "Assign the same attributes as '$($oldPath)'")) {
+            Set-ItemProperty -Path $Path -Name Attributes -Value $oldDirAttr
+        }
+
+        if ($PSCmdlet.ShouldProcess($regPath, "Change property '$($regName)'")) {
+            Set-ItemProperty $regPath -Name $regName -Value $Path
+        }
+
+        New-ResultJson "ユーザー プロファイルの既定ディレクトリが正常に '$($Path)' に変更されました。以前のディレクトリは '$($oldPath)' でした。" -Failed $false -Changed $true -Json:$Json
     }
-
-    if ($PSCmdlet.ShouldProcess($newIniFile, "Copy '$($oldIniFile)'")) {
-        Get-Content $oldIniFile > $newIniFile
-    }
-
-    $oldIniAttr = (Get-Item $oldIniFile -Force).Attributes
-
-    if ($PSCmdlet.ShouldProcess($newIniFile, "Assign the same attributes as '$($oldIniFile)'")) {
-        Set-ItemProperty -Path $newIniFile -Name Attributes -Value $oldIniAttr
-    }
-
-    $oldDirAcl = Get-Acl -Path $oldPath -Audit
-    $oldDirAttr = (Get-Item $oldPath).Attributes -band -bnot [System.IO.FileAttributes]::Directory
-
-    if ($PSCmdlet.ShouldProcess($Path, "Assign the same ACL as '$($oldPath)'")) {
-        Set-Acl -Path $Path -AclObject $oldDirAcl
-    }
-
-    if ($PSCmdlet.ShouldProcess($Path, "Assign the same attributes as '$($oldPath)'")) {
-        Set-ItemProperty -Path $Path -Name Attributes -Value $oldDirAttr
-    }
-
-    if ($PSCmdlet.ShouldProcess($regPath, "Change property '$($regName)'")) {
-        Set-ItemProperty $regPath -Name $regName -Value $Path
+    catch {
+        $ErrorActionPreference = $errorActionPref
+        New-ResultJson $_ -Failed $true -Changed $changed -Json:$Json
+        Write-Error $_
     }
 }

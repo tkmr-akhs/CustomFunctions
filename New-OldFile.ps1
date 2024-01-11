@@ -90,12 +90,18 @@ function New-OldFile {
     }
     $Directory = (Resolve-Path $Directory)
 
-    $mtime = $Start
-    $ctime = $mtime.AddHours(-$IntervalHours)
+    $mtime = $Start.AddHours($IntervalHours * 8)
     $i = 0
-    $threashold = $Count % 8 -eq 0 ? $Count - 8 : $Count - $Count % 8 
-    Write-Debug "$($threashold)/$($Count)" 
+    $threashold = $Count - $Count % 8
     for (; $i -lt $threashold; $i++) {
+        if ($i % 8 -eq 0) {
+            $mtime = $mtime.AddHours(-$IntervalHours * 15)
+        }
+        else {
+            $mtime = $mtime.AddHours($IntervalHours)
+        }
+        $ctime = $mtime.AddHours(-$IntervalHours)
+
         $filePath = "$($Directory)\$($mtime.ToString($FormatString))"
         if ($PSCmdlet.ShouldProcess($filePath, "Create a file of size $($FileLength)")) {
             New-RandomFile $filePath -FileSize $FileLength
@@ -103,24 +109,11 @@ function New-OldFile {
             [System.IO.File]::SetCreationTime($filePath, $ctime)
             Write-Debug "Create a file '$($filePath)' of size '$($FileLength)'"
         }
-
-        if ($i -eq 0) {
-            $mtime = $mtime.AddHours(-$IntervalHours * 7)
-        }
-        elseif ($i % 8 -eq 0) {
-            $mtime = $mtime.AddHours(-$IntervalHours * 15)
-        }
-        else {
-            $mtime = $mtime.AddHours($IntervalHours)
-        }
-        $ctime = $mtime.AddHours(-$IntervalHours)
     }
 
     Write-Debug "--------------------------"
-    if ($i -ne 0) {
-        $mtime = $mtime.AddHours(-$IntervalHours * 8)
-        $ctime = $mtime.AddHours(-$IntervalHours)
-    }
+    $mtime = $mtime.AddHours(-$IntervalHours * 8)
+    $ctime = $mtime.AddHours(-$IntervalHours)
 
     for (; $i -lt $Count; $i++) {
         $filePath = "$($Directory)\$($mtime.ToString($FormatString))"
