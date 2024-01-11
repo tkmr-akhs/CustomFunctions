@@ -44,21 +44,21 @@ function Set-ProfilesDirectory {
     $fullOldPath = [System.IO.Path]::GetFullPath($expandedOldPath)
     $fullNewPath = [System.IO.Path]::GetFullPath($expandedNewPath)
 
-    if ($fullOldPath -eq $fullNewPath) {
-        $msg = "設定済みです。"
+    if (-not $Force -and $fullOldPath -eq $fullNewPath) {
+        $msg = "No changes are made."
         New-ResultJson $msg -Failed $false -Changed $false -Json:$Json
         return
     }
 
     if (Test-Path $Path) {
         if (-not $Force) {
-            $msg = "'$($Path)' は既に存在します。'-Force' オプションを使用して強制的に処理を進めることができます。"
+            $msg = "'$($Path)' already exists. Use the '-Force' option to proceed forcibly."
             New-ResultJson $msg -Failed $true -Changed $false -Json:$Json
             Write-Error $msg
             return
         }
 
-        Write-Warning "'$Path' は既に存在しています。"
+        Write-Warning "'$($Path)' already exists."
         if (-not (Get-Item $Path -Force).PSIsContainer -and $PSCmdlet.ShouldProcess($Path, "Remove item")) {
             Remove-Item $Path -Force
             $changed = $true
@@ -100,7 +100,7 @@ function Set-ProfilesDirectory {
             Set-ItemProperty $regPath -Name $regName -Value $Path
         }
 
-        New-ResultJson "ユーザー プロファイルの既定ディレクトリが正常に '$($Path)' に変更されました。以前のディレクトリは '$($oldPath)' でした。" -Failed $false -Changed $true -Json:$Json
+        New-ResultJson "The default directory for user profiles has been successfully changed to '$($Path)'. The previous directory was '$($oldPath)'." -Failed $false -Changed $true -Json:$Json
     }
     catch {
         $ErrorActionPreference = $errorActionPref
