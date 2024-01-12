@@ -78,12 +78,19 @@ function New-OldFile {
     }
     $Directory = (Resolve-Path $Directory)
 
-    $mtime = $Start.AddHours($IntervalHours * 8)
+    
     $i = 0
-    $threashold = $Count - $Count % 8
+    $threashold = $Count - $Count % 5
+
+    if ($threashold -le 0) {
+        $mtime = $Start
+    }
+    else {
+        $mtime = $Start.AddHours($IntervalHours * 5)
+    }
     for (; $i -lt $threashold; $i++) {
-        if ($i % 8 -eq 0) {
-            $mtime = $mtime.AddHours(-$IntervalHours * 15)
+        if ($i % 5 -eq 0) {
+            $mtime = $mtime.AddHours(-$IntervalHours * 9)
         }
         else {
             $mtime = $mtime.AddHours($IntervalHours)
@@ -100,7 +107,9 @@ function New-OldFile {
     }
 
     Write-Debug "--------------------------"
-    $mtime = $mtime.AddHours(-$IntervalHours * 8)
+    if (0 -lt $threashold) {
+        $mtime = $mtime.AddHours(-$IntervalHours * 5)
+    }
     $ctime = $mtime.AddHours(-$IntervalHours)
 
     for (; $i -lt $Count; $i++) {
@@ -109,7 +118,7 @@ function New-OldFile {
             New-RandomFile $filePath -FileSize $FileLength
             [System.IO.File]::SetLastWriteTime($filePath, $mtime)
             [System.IO.File]::SetCreationTime($filePath, $ctime)
-            Write-Debug "Create a file '$($filePath)' of size '$($FileLength)'"
+            Write-Debug "Creating a file at '$($filePath)' with a size of '$($FileLength) bytes'"
         }
 
         $mtime = $ctime
