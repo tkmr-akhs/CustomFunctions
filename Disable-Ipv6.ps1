@@ -15,10 +15,7 @@ https://docs.microsoft.com/powershell/
 #>
 function Disable-Ipv6 {
     [CmdletBinding(SupportsShouldProcess)]
-    Param(
-        [Parameter()]
-        [switch]$Json
-    )
+    Param()
 
     #### Local Functions ################
     function IsEnabled([string[]]$output) {
@@ -136,13 +133,13 @@ function Disable-Ipv6 {
     }
 
     if (-not $changed -and -not $failed) {
-        return (New-ResultJson "No changes are made." -Changed $false -Failed $false -Json:$Json)
+        return (New-FunctionResult "No changes are made." -Changed $false -Failed $false)
     }
     elseif ($failed) {
-        return (New-ResultJson $message -Changed $changed -Failed $true -Json:$Json)
+        return (New-FunctionResult $message -Changed $changed -Failed $true)
     }
     else {
-        return (New-ResultJson "IPv6 functions successfully disabled." -Changed $changed -Failed $failed -Json:$Json)
+        return (New-FunctionResult "IPv6 functions successfully disabled." -Changed $changed -Failed $failed)
     }
 }
 

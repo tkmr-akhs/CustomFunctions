@@ -42,10 +42,7 @@ function Set-EventLogConfiguration {
         [Nullable[bool]]$Retention,
 
         [Parameter()]
-        [Nullable[bool]]$AutoBackup,
-
-        [Parameter()]
-        [switch]$Json
+        [Nullable[bool]]$AutoBackup
     )
 
     #### Local Functions ################
@@ -73,7 +70,7 @@ function Set-EventLogConfiguration {
         $currentLogConfig = Get-EventLogConfiguration $LogName -ErrorAction Stop
     }
     catch {
-        New-ResultJson $_ -Changed $false -Failed $true -Json:$Json
+        New-FunctionResult $_ -Changed $false -Failed $true
         Write-Error $_
         return
     }
@@ -85,7 +82,7 @@ function Set-EventLogConfiguration {
         }
         else {
             $msg = "'Path' is invalid."
-            New-ResultJson $msg -Changed $false -Failed $false -Json:$Json
+            New-FunctionResult $msg -Changed $false -Failed $false
             Write-Error $msg
             return
         }
@@ -124,7 +121,7 @@ function Set-EventLogConfiguration {
     }
 
     if (Test-EventLogConfigurationChange $currentLogConfig $Path $Size $Retention $AutoBackup) {
-        New-ResultJson "No changes are made." -Changed $false -Failed $false -Json:$Json
+        New-FunctionResult "No changes are made." -Changed $false -Failed $false
         return
     }
 
@@ -133,17 +130,17 @@ function Set-EventLogConfiguration {
         $output = (WEVTUTIL "set-log" $LogName "/quiet:true" $pathOption $retentionOption $autoBackupOption $maxSizeOption 2>&1)
         
         if (-not $?) {
-            New-ResultJson "$($output)" -Changed $false -Failed $true -Json:$Json
+            New-FunctionResult "$($output)" -Changed $false -Failed $true
             Write-Error "$($output)"
             return
         }
         else {
-            New-ResultJson "Event log configuration updated successfully." -Changed $true -Failed $false -Json:$Json
+            New-FunctionResult "Event log configuration updated successfully." -Changed $true -Failed $false
             return
         }
     }
     else {
-        New-ResultJson "(dry-run) Event log configuration updated successfully." -Changed $true -Failed $false -Json:$Json
+        New-FunctionResult "(dry-run) Event log configuration updated successfully." -Changed $true -Failed $false
         return
     }
 }

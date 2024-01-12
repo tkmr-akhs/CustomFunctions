@@ -24,10 +24,7 @@ function Set-ProfilesDirectory {
         [String]$Path,
 
         [Parameter()]
-        [Switch]$Force,
-
-        [Parameter()]
-        [switch]$Json
+        [Switch]$Force
     )
     $Path = $Path.TrimEnd('\', '/')
 
@@ -46,14 +43,14 @@ function Set-ProfilesDirectory {
 
     if (-not $Force -and $fullOldPath -eq $fullNewPath) {
         $msg = "No changes are made."
-        New-ResultJson $msg -Failed $false -Changed $false -Json:$Json
+        New-FunctionResult $msg -Failed $false -Changed $false
         return
     }
 
     if (Test-Path $Path) {
         if (-not $Force) {
             $msg = "'$($Path)' already exists. Use the '-Force' option to proceed forcibly."
-            New-ResultJson $msg -Failed $true -Changed $false -Json:$Json
+            New-FunctionResult $msg -Failed $true -Changed $false
             Write-Error $msg
             return
         }
@@ -100,11 +97,11 @@ function Set-ProfilesDirectory {
             Set-ItemProperty $regPath -Name $regName -Value $Path
         }
 
-        New-ResultJson "The default directory for user profiles has been successfully changed to '$($Path)'. The previous directory was '$($oldPath)'." -Failed $false -Changed $true -Json:$Json
+        New-FunctionResult "The default directory for user profiles has been successfully changed to '$($Path)'. The previous directory was '$($oldPath)'." -Failed $false -Changed $true
     }
     catch {
         $ErrorActionPreference = $errorActionPref
-        New-ResultJson $_ -Failed $true -Changed $changed -Json:$Json
+        New-FunctionResult $_ -Failed $true -Changed $changed
         Write-Error $_
     }
 }
