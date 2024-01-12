@@ -90,7 +90,7 @@ function Disable-Ipv6 {
     }
 
     if (IsEnabled (NETSH "interface" "ipv6" "show" "teredo")) {
-        Write-Debug "Disable teredo."
+        Write-Debug "Disable Teredo."
         if ($PSCmdlet.ShouldProcess("interface ipv6 teredo", "set state disabled")) {
             $output = (NETSH "interface" "ipv6" "set" "teredo" "disabled" 2>&1)
             if ($?) {
