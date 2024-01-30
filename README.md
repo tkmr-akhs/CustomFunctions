@@ -67,4 +67,4 @@ function Example-Function {
     # 処理
 }
 ```
-2. `CustomFunctions.psm1` のドット ソーシングに作成したファイルを追加し、Export-ModuleMember に function を追加する。
+2. `CustomFunctions.psm1` を編集する。作成したファイルをドット ソーシングで実行する行を追加し、Export-ModuleMember に公開する function を追加する。
